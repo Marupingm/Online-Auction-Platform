@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { FaUpload } from 'react-icons/fa';
 import { 
   useGetAuctionDetailsQuery, 
   useUpdateAuctionMutation 
 } from '../slices/auctionsApiSlice';
+import ImageUpload from '../components/ImageUpload';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 
@@ -28,9 +28,7 @@ const CATEGORIES = [
 const EditAuctionScreen = () => {
   const { id: auctionId } = useParams();
   
-  const [imagePreview, setImagePreview] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   
   const navigate = useNavigate();
   
@@ -82,52 +80,24 @@ const EditAuctionScreen = () => {
       setValue('description', auction.description);
       setValue('startingPrice', auction.startingPrice);
       
-      // Set image preview
-      setImagePreview(auction.imageUrl);
+      // Set image URL
+      setImageUrl(auction.imageUrl);
     }
   }, [auction, userInfo, navigate, setValue]);
   
-  // Handle image selection
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  // Handle image upload success
+  const handleImageUploaded = (url) => {
+    setImageUrl(url);
+  };
+  
+  // Handle image removal
+  const handleImageRemoved = () => {
+    setImageUrl('');
   };
   
   // Handle form submission
   const onSubmit = async (data) => {
     try {
-      let imageUrl = auction.imageUrl;
-      
-      // Upload new image if changed
-      if (imageFile) {
-        setUploading(true);
-        
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        
-        // Assuming you have an endpoint to upload images
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!uploadResponse.ok) {
-          throw new Error('Image upload failed');
-        }
-        
-        const uploadResult = await uploadResponse.json();
-        imageUrl = uploadResult.imageUrl;
-        
-        setUploading(false);
-      }
-      
       // Update auction with data and image URL
       const auctionData = {
         auctionId,
@@ -143,7 +113,6 @@ const EditAuctionScreen = () => {
       toast.success('Auction updated successfully');
       navigate(`/auction/${result._id}`);
     } catch (err) {
-      setUploading(false);
       toast.error(err?.data?.message || err.message || 'Failed to update auction');
     }
   };
@@ -262,56 +231,12 @@ const EditAuctionScreen = () => {
             
             <div className="space-y-4">
               {/* Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Auction Image
-                </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                  {imagePreview ? (
-                    <div className="space-y-2 text-center">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="mx-auto h-48 w-auto object-contain"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImagePreview('');
-                          setImageFile(null);
-                        }}
-                        className="text-sm text-red-600 hover:text-red-800"
-                      >
-                        Change image
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-1 text-center">
-                      <FaUpload className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label
-                          htmlFor="image-upload"
-                          className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-blue-700 focus-within:outline-none"
-                        >
-                          <span>Upload an image</span>
-                          <input
-                            id="image-upload"
-                            name="image-upload"
-                            type="file"
-                            className="sr-only"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG, GIF up to 5MB
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ImageUpload
+                label="Auction Image"
+                onImageUpload={handleImageUploaded}
+                onImageRemove={handleImageRemoved}
+                initialImage={imageUrl}
+              />
               
               {/* Description */}
               <div>
@@ -356,9 +281,9 @@ const EditAuctionScreen = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={isUpdating || uploading}
+              disabled={isUpdating}
             >
-              {isUpdating || uploading ? <Loader /> : 'Update Auction'}
+              {isUpdating ? <Loader /> : 'Update Auction'}
             </button>
           </div>
         </form>

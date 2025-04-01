@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaUser, FaSignOutAlt, FaList, FaGavel, FaTrophy } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaList, FaGavel, FaTrophy, FaBars, FaTimes, FaPlus, FaBell, FaTachometerAlt } from 'react-icons/fa';
 import { logout } from '../slices/authSlice';
 import { useLogoutMutation } from '../slices/usersApiSlice';
+import NotificationBell from './NotificationBell';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const { userInfo } = useSelector((state) => state.auth);
   
@@ -49,15 +51,19 @@ const Header = () => {
           </nav>
           
           {/* User menu (desktop) */}
-          {userInfo ? (
+          {userInfo && (
             <div className="hidden md:block relative">
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 text-white hover:text-primary"
-              >
-                <FaUser />
-                <span>{userInfo.name}</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <NotificationBell />
+                
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 text-white hover:text-primary"
+                >
+                  <FaUser />
+                  <span>{userInfo.name}</span>
+                </button>
+              </div>
               
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-48 py-2 bg-white rounded-md shadow-xl z-20">
@@ -94,60 +100,38 @@ const Header = () => {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="hidden md:flex space-x-4">
-              <Link to="/login" className="btn btn-primary">
-                Login
-              </Link>
-              <Link to="/register" className="btn btn-outline">
-                Register
-              </Link>
-            </div>
           )}
           
           {/* Mobile menu button */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-white hover:text-primary"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16m-7 6h7"
-              ></path>
-            </svg>
+            {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
         
         {/* Mobile menu */}
-        {isMenuOpen && (
+        {isMobileMenuOpen && (
           <div className="md:hidden mt-4 py-2 border-t border-gray-700">
             <Link
               to="/"
               className="block py-2 text-white hover:text-primary"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link
               to="/auctions"
               className="block py-2 text-white hover:text-primary"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Auctions
             </Link>
             <Link
               to="/about"
               className="block py-2 text-white hover:text-primary"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               About
             </Link>
@@ -157,35 +141,35 @@ const Header = () => {
                 <Link
                   to="/profile"
                   className="block py-2 text-white hover:text-primary"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <FaUser className="inline mr-2" /> Profile
                 </Link>
                 <Link
                   to="/my-auctions"
                   className="block py-2 text-white hover:text-primary"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <FaList className="inline mr-2" /> My Auctions
                 </Link>
                 <Link
                   to="/my-bids"
                   className="block py-2 text-white hover:text-primary"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <FaGavel className="inline mr-2" /> My Bids
                 </Link>
                 <Link
                   to="/my-wins"
                   className="block py-2 text-white hover:text-primary"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <FaTrophy className="inline mr-2" /> My Wins
                 </Link>
                 <button
                   onClick={() => {
                     logoutHandler();
-                    setIsMenuOpen(false);
+                    setIsMobileMenuOpen(false);
                   }}
                   className="block w-full text-left py-2 text-white hover:text-primary"
                 >

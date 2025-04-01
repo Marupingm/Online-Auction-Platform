@@ -1,10 +1,23 @@
 import { io } from 'socket.io-client';
 
-const URL = 'http://localhost:5000';
-let socket;
+// Create socket instance
+const URL = process.env.NODE_ENV === 'production' 
+  ? undefined  // Use relative URL in production
+  : 'http://localhost:5000';
+
+const socket = io(URL, {
+  autoConnect: false,  // Prevent auto-connection, we'll connect when needed
+});
+
+// Debug events in development
+if (process.env.NODE_ENV !== 'production') {
+  socket.onAny((event, ...args) => {
+    console.log('Socket event:', event, args);
+  });
+}
 
 export const initiateSocket = () => {
-  socket = io(URL);
+  socket.connect();
   console.log('Connecting to socket');
   
   socket.on('connect', () => {
@@ -56,12 +69,4 @@ export const placeBid = (auctionId, amount) => {
   }
 };
 
-export default {
-  initiateSocket,
-  disconnectSocket,
-  joinAuction,
-  leaveAuction,
-  subscribeToBidUpdates,
-  unsubscribeFromBidUpdates,
-  placeBid,
-}; 
+export default socket; 
